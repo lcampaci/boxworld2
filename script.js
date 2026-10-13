@@ -74,6 +74,13 @@ function advanceSolution(){if(solutionIndex>=solutionMoves.length)return;applySo
 function playSolutionPreview(){if(playTimer!==null){stopSolution();return;}if(solutionIndex>=solutionMoves.length){solutionIndex=0;solutionState=parseLevel(LEVELS[current]);renderSolutionPreview();}document.getElementById("solutionPlayBtn").textContent="■ Pausar";const tick=()=>{if(!solutionDialog.open||solutionIndex>=solutionMoves.length){stopSolution();return;}advanceSolution();playTimer=setTimeout(tick,220);};tick();}
 
 document.addEventListener("keydown",e=>{
+ if(winDialog.open && (e.key === "Enter" || e.key === " ")){
+  e.preventDefault();
+  winDialog.close();
+  if(current < LEVELS.length - 1) loadLevel(current + 1);
+  else message.textContent = "Parabéns! Você concluiu todas as fases.";
+  return;
+ }
  if(document.querySelector("dialog[open]"))return;
  if(dirs[e.key]){e.preventDefault();step(...dirs[e.key]);}
  else if(e.key.toLowerCase()==="z"){e.preventDefault();undo();}
@@ -114,5 +121,8 @@ window.addEventListener("appinstalled",()=>{installBtn.hidden=true;installPrompt
 if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost" || location.hostname==="127.0.0.1")){
  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.error("Falha ao registrar o modo offline:",err)));
 }
-loadLevel(0);
+// Ao reabrir o jogo, retoma a primeira fase ainda não concluída.
+// Se todas estiverem concluídas, abre a última fase.
+const resumeLevel = highestUnlocked();
+loadLevel(completed.size === LEVELS.length ? LEVELS.length - 1 : resumeLevel);
 })();
