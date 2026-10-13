@@ -3,12 +3,12 @@
 const LEVELS=window.BOXWORLD_LEVELS;
 const board=document.getElementById("board"),movesEl=document.getElementById("moves"),pushesEl=document.getElementById("pushes");
 const levelNum=document.getElementById("levelNum"),statusLevel=document.getElementById("statusLevel"),message=document.getElementById("message");
-const levelDialog=document.getElementById("levelDialog"),helpDialog=document.getElementById("helpDialog"),winDialog=document.getElementById("winDialog"),gameDialog=document.getElementById("gameDialog"),passwordDialog=document.getElementById("passwordDialog"),aboutDialog=document.getElementById("aboutDialog");
+const solutionDialog=document.getElementById("solutionDialog"),solutionBoard=document.getElementById("solutionBoard"),levelDialog=document.getElementById("levelDialog"),helpDialog=document.getElementById("helpDialog"),winDialog=document.getElementById("winDialog"),gameDialog=document.getElementById("gameDialog"),passwordDialog=document.getElementById("passwordDialog"),aboutDialog=document.getElementById("aboutDialog");
 const PROGRESS_KEY="boxworld_completed_levels_v1";
 // Altere esta senha para outra de sua preferência.
 const SOLUTION_PASSWORD="BOXWORLD1992";
 function loadProgress(){try{const a=JSON.parse(localStorage.getItem(PROGRESS_KEY)||"[]");return new Set(a.filter(n=>Number.isInteger(n)&&n>=0&&n<LEVELS.length));}catch(_){return new Set();}}
-let current=0,state=null,history=[],moves=0,pushes=0,completed=loadProgress(),won=false,playTimer=null;
+let current=0,state=null,history=[],moves=0,pushes=0,completed=loadProgress(),won=false,playTimer=null,solutionState=null,solutionMoves=[],solutionIndex=0;
 const TILE=30, WIDTH=16, HEIGHT=14;
 const dirs={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],a:[-1,0],s:[0,1],d:[1,0],W:[0,-1],A:[-1,0],S:[0,1],D:[1,0]};
 function parseLevel(level){
@@ -23,19 +23,16 @@ function highestUnlocked(){return Math.min(LEVELS.length-1,completed.size?Math.m
 function loadLevel(n){stopSolution();n=Math.max(0,Math.min(LEVELS.length-1,n));if(n>highestUnlocked()){message.textContent="Fase bloqueada! Conclua a fase "+(highestUnlocked()+1)+" para desbloqueá-la.";return false;}current=n;state=parseLevel(LEVELS[current]);history=[];moves=0;pushes=0;won=false;
  levelNum.textContent=current+1;statusLevel.textContent="Fase "+(current+1);message.textContent="Empurre todas as caixas para os alvos.";render();renderLevels();updateNavigation();return true;}
 function tileSprite(v){return "./imagens/"+v+".gif";}
-function render(){
- board.innerHTML="";
- const fragment=document.createDocumentFragment();
+function drawBoard(target,source,clickable=false){
+ target.innerHTML="";const fragment=document.createDocumentFragment();
  for(let i=0;i<WIDTH*HEIGHT;i++){
-  let v=state.terrain[i];
-  if(state.boxes.has(i))v=state.goals.has(i)?4:3;
-  else if(state.player===i)v=state.goals.has(i)?6:5;
+  let v=source.terrain[i];if(source.boxes.has(i))v=source.goals.has(i)?4:3;else if(source.player===i)v=source.goals.has(i)?6:5;
   const img=document.createElement("img");img.className="tile";img.alt="";img.draggable=false;img.src=tileSprite(v);img.dataset.index=i;
-  img.addEventListener("click",()=>{const d=i-state.player;if(d===-WIDTH)step(0,-1);else if(d===WIDTH)step(0,1);else if(d===-1&&Math.floor(i/WIDTH)===Math.floor(state.player/WIDTH))step(-1,0);else if(d===1&&Math.floor(i/WIDTH)===Math.floor(state.player/WIDTH))step(1,0);});
+  if(clickable)img.addEventListener("click",()=>{const d=i-state.player;if(d===-WIDTH)step(0,-1);else if(d===WIDTH)step(0,1);else if(d===-1&&Math.floor(i/WIDTH)===Math.floor(state.player/WIDTH))step(-1,0);else if(d===1&&Math.floor(i/WIDTH)===Math.floor(state.player/WIDTH))step(1,0);});
   fragment.appendChild(img);
- }
- board.appendChild(fragment);movesEl.textContent=moves;pushesEl.textContent=pushes;
+ }target.appendChild(fragment);
 }
+function render(){drawBoard(board,state,true);movesEl.textContent=moves;pushesEl.textContent=pushes;}
 function save(){history.push({state:clone(state),moves,pushes});if(history.length>1000)history.shift();}
 function step(dx,dy,fromSolution=false){
  if(won)return false;
@@ -53,33 +50,28 @@ function step(dx,dy,fromSolution=false){
  if(box){state.boxes.delete(next);state.boxes.add(after);pushes++;}
  render();checkWin();return true;
 }
-function undo(){stopSolution();if(!history.length||won)return;const h=history.pop();state=h.state;moves=h.moves;pushes=h.pushes;message.textContent="Movimento desfeito.";render();}
+function undo(){stopSolution();if(!history.length)return;won=false;if(winDialog.open)winDialog.close();const h=history.pop();state=h.state;moves=h.moves;pushes=h.pushes;message.textContent="Último movimento desfeito.";render();updateNavigation();}
 function restart(){loadLevel(current);}
 function checkWin(){if(state.boxes.size===state.goals.size&&[...state.goals].every(g=>state.boxes.has(g))){won=true;completed.add(current);try{localStorage.setItem(PROGRESS_KEY,JSON.stringify([...completed].sort((a,b)=>a-b)));}catch(_){}message.textContent="Fase concluída! A próxima fase foi desbloqueada.";renderLevels();updateNavigation();stopSolution();setTimeout(()=>{if(won&&!winDialog.open)winDialog.showModal();},120);}}
 function updateNavigation(){document.getElementById("prevBtn").disabled=current===0;document.getElementById("nextBtn").disabled=current>=highestUnlocked();document.getElementById("winNext").disabled=current>=LEVELS.length-1;}
 function renderLevels(){const grid=document.getElementById("levelGrid");grid.innerHTML="";const unlocked=highestUnlocked();LEVELS.forEach((l,i)=>{const b=document.createElement("button");const isLocked=i>unlocked;b.textContent=isLocked?"🔒":""+(i+1);if(i===current)b.classList.add("current");if(completed.has(i))b.classList.add("done");if(isLocked){b.classList.add("locked");b.disabled=true;b.title="Bloqueada — conclua a fase "+i+" para liberar.";}else{b.title="Fase "+(i+1)+" · empurrões de referência: "+l.pushes;b.onclick=()=>{if(loadLevel(i))levelDialog.close();};}grid.appendChild(b);});}
 function playSolution(){
- if(playTimer!==null){stopSolution();message.textContent="Reprodução da solução interrompida.";return;}
- document.getElementById("passwordError").textContent="";
- document.getElementById("solutionPasswordInput").value="";
- passwordDialog.showModal();
- document.getElementById("solutionPasswordInput").focus();
+ stopSolution();document.getElementById("passwordError").textContent="";document.getElementById("solutionPasswordInput").value="";passwordDialog.showModal();document.getElementById("solutionPasswordInput").focus();
 }
+function applySolutionMove(source,code){
+ const dirsByCode={1:[0,1],2:[0,-1],3:[1,0],4:[-1,0]};const d=dirsByCode[code];if(!d)return;
+ const [dx,dy]=d,x=source.player%WIDTH,y=Math.floor(source.player/WIDTH),nx=x+dx,ny=y+dy;if(nx<0||nx>=WIDTH||ny<0||ny>=HEIGHT)return;
+ const next=ny*WIDTH+nx,after=(ny+dy)*WIDTH+(nx+dx);if(source.terrain[next]===0||source.terrain[next]===1)return;
+ if(source.boxes.has(next)){if(nx+dx<0||nx+dx>=WIDTH||ny+dy<0||ny+dy>=HEIGHT||source.terrain[after]===0||source.terrain[after]===1||source.boxes.has(after))return;source.boxes.delete(next);source.boxes.add(after);}source.player=next;
+}
+function renderSolutionPreview(){drawBoard(solutionBoard,solutionState,false);document.getElementById("solutionStepLabel").textContent="Passo "+solutionIndex+" / "+solutionMoves.length;document.getElementById("solutionPrevBtn").disabled=solutionIndex<=0;document.getElementById("solutionNextBtn").disabled=solutionIndex>=solutionMoves.length;}
+function stopSolution(){if(playTimer!==null){clearTimeout(playTimer);playTimer=null;}const b=document.getElementById("solutionPlayBtn");if(b)b.textContent="▶ Reproduzir";}
 function startSolution(){
- const sol=LEVELS[current].solution;
- if(!sol||sol.length<2){message.textContent="Não há solução guardada para esta fase.";return;}
- if(moves!==0){if(!confirm("A solução será reproduzida desde o início. Reiniciar a fase?"))return;loadLevel(current);}
- document.getElementById("solutionBtn").textContent="■ Parar solução";
- let p=0;
- const tick=()=>{
-  if(p>=sol.length){stopSolution();message.textContent="Fim da solução guardada.";return;}
-  const code=sol[p++];
-  if(code===1)step(0,1,true);else if(code===2)step(0,-1,true);else if(code===3)step(1,0,true);else if(code===4)step(-1,0,true);
-  if(won){stopSolution();return;}
-  playTimer=setTimeout(tick,180);
- };
- tick();
+ const sol=LEVELS[current].solution;if(!sol||!sol.length){message.textContent="Não há solução guardada para esta fase.";return;}
+ solutionMoves=sol.filter(code=>code>=1&&code<=4);solutionIndex=0;solutionState=parseLevel(LEVELS[current]);document.getElementById("solutionLevelLabel").textContent=current+1;renderSolutionPreview();solutionDialog.showModal();
 }
+function advanceSolution(){if(solutionIndex>=solutionMoves.length)return;applySolutionMove(solutionState,solutionMoves[solutionIndex++]);renderSolutionPreview();}
+function playSolutionPreview(){if(playTimer!==null){stopSolution();return;}if(solutionIndex>=solutionMoves.length){solutionIndex=0;solutionState=parseLevel(LEVELS[current]);renderSolutionPreview();}document.getElementById("solutionPlayBtn").textContent="■ Pausar";const tick=()=>{if(!solutionDialog.open||solutionIndex>=solutionMoves.length){stopSolution();return;}advanceSolution();playTimer=setTimeout(tick,220);};tick();}
 
 document.addEventListener("keydown",e=>{
  if(document.querySelector("dialog[open]"))return;
@@ -105,8 +97,10 @@ document.getElementById("restartBtn").onclick=()=>{if(confirm("Reiniciar a fase 
 document.getElementById("prevBtn").onclick=()=>loadLevel(current-1);
 document.getElementById("nextBtn").onclick=()=>loadLevel(current+1);
 document.getElementById("solutionBtn").onclick=playSolution;
+document.getElementById("solutionPlayBtn").onclick=playSolutionPreview;document.getElementById("solutionPrevBtn").onclick=()=>{stopSolution();if(solutionIndex>0){solutionIndex--;solutionState=parseLevel(LEVELS[current]);for(let i=0;i<solutionIndex;i++)applySolutionMove(solutionState,solutionMoves[i]);renderSolutionPreview();}};document.getElementById("solutionNextBtn").onclick=()=>{stopSolution();advanceSolution();};
 document.getElementById("winNext").onclick=()=>{winDialog.close();if(current<LEVELS.length-1)loadLevel(current+1);};
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>document.getElementById(b.dataset.close).close());
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{const dlg=document.getElementById(b.dataset.close);if(dlg.id==="solutionDialog")stopSolution();dlg.close();});
+solutionDialog.addEventListener("close",stopSolution);
 let installPrompt=null;
 const installBtn=document.getElementById("installBtn");
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;installBtn.hidden=false;});
