@@ -96,7 +96,7 @@ document.getElementById("menuSolution").onclick=()=>{gameDialog.close();playSolu
 document.getElementById("passwordForm").addEventListener("submit",e=>{
  e.preventDefault();
  const input=document.getElementById("solutionPasswordInput");
- if(input.value!==SOLUTION_PASSWORD){document.getElementById("passwordError").textContent="Senha incorreta. A solução continua bloqueada.";input.select();return;}
+ if(input.value.trim().toUpperCase() !== SOLUTION_PASSWORD){document.getElementById("passwordError").textContent="Senha incorreta. A solução continua bloqueada.";input.select();return;}
  passwordDialog.close();startSolution();
 });
 document.getElementById("undoBtn").onclick=undo;
