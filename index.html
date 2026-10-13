@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BoxWorld — Original 100 fases</title>
+<meta name="theme-color" content="#000080">
+<meta name="description" content="Recriação de BoxWorld com 100 fases clássicas, funcionamento offline e instalação como aplicativo.">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="./imagens/icon-192.png">
+<link rel="apple-touch-icon" href="./imagens/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="window">
+  <header class="titlebar"><img src="./imagens/3.gif" alt="" class="appicon"><strong>BoxWorld</strong><span class="grow"></span><button class="sys">_</button><button class="sys">□</button><button class="sys">×</button></header>
+  <nav class="menubar"><button id="gameMenu">Jogo</button><button id="levelsMenu">Fases</button><button id="helpMenu">Ajuda</button><button id="aboutMenu">Sobre</button><button id="installBtn" hidden>Instalar</button></nav>
+  <section class="content">
+    <div class="top"><label>Fase <b id="levelNum">1</b> / 100</label><label>Movimentos: <b id="moves">0</b></label><label>Empurrões: <b id="pushes">0</b></label></div>
+    <div class="board-shell"><div id="board" aria-label="Tabuleiro BoxWorld"></div></div>
+    <div class="toolbar">
+      <button id="undoBtn">↶ Desfazer</button><button id="restartBtn">⟲ Reiniciar</button><button id="prevBtn">◀ Anterior</button><button id="nextBtn">Próxima ▶</button><button id="solutionBtn">▶ Ver solução</button>
+    </div>
+    <div class="message" id="message">Empurre todas as caixas para os alvos.</div>
+  </section>
+  <footer><span id="statusLevel">Fase 1</span><span>Setas / WASD · Z desfaz · R reinicia</span></footer>
+</main>
+<dialog id="gameDialog"><div class="dlg-title">Jogo <button data-close="gameDialog">×</button></div><div class="dlg-content game-options"><button id="menuRestart">⟲ Reiniciar fase</button><button id="menuUndo">↶ Desfazer movimento</button><button id="menuSolution">▶ Ver solução</button><button data-close="gameDialog">Cancelar</button></div></dialog>
+<dialog id="passwordDialog"><div class="dlg-title">Ver solução <button data-close="passwordDialog">×</button></div><form id="passwordForm" class="dlg-content"><label for="solutionPasswordInput">Digite a senha para mostrar a solução:</label><input id="solutionPasswordInput" type="password" autocomplete="current-password" required><p id="passwordError" class="error-text" role="alert"></p><div class="dialog-actions"><button type="button" data-close="passwordDialog">Cancelar</button><button type="submit">Confirmar</button></div></form></dialog>
+<dialog id="aboutDialog"><div class="dlg-title">Sobre o BoxWorld <button data-close="aboutDialog">×</button></div><div class="dlg-content about-content"><h3>BoxWorld — Recriação clássica</h3><p><strong>Data desta versão:</strong> 13 de outubro de 2026</p><p><strong>Criador desta versão:</strong> Luis Henrique Campaci</p><p><strong>E-mail:</strong> <a href="mailto:luiscampaci@hotmail.com.br">luiscampaci@hotmail.com.br</a></p><hr><p><strong>Jogo original:</strong> Box World</p><p><strong>Criador do original:</strong> Jeng-Long Jiang</p><p><strong>Ano de lançamento:</strong> 1992 (Windows)</p><p class="about-note">Esta versão é uma recriação em HTML, CSS e JavaScript, utilizando os mapas e gráficos recuperados do pacote fornecido. Box World é baseado no estilo de quebra-cabeça Sokoban, criado por Hiroyuki Imabayashi e publicado pela Thinking Rabbit em 1981.</p></div></dialog>
+<dialog id="levelDialog"><div class="dlg-title">Selecionar fase <button data-close="levelDialog">×</button></div><div id="levelGrid"></div></dialog>
+<dialog id="helpDialog"><div class="dlg-title">Ajuda <button data-close="helpDialog">×</button></div><div class="dlg-content"><p>Coloque todas as caixas sobre os alvos amarelos.</p><p>Use as setas ou W/A/S/D para mover. Z desfaz o movimento e R reinicia a fase.</p><p>As 100 fases e os gráficos de peças foram recuperados do pacote BoxWorld enviado. As fases são desbloqueadas em sequência: é preciso concluir uma fase para liberar a próxima.</p><p>A opção de solução exige uma senha.</p></div></dialog>
+<dialog id="winDialog"><div class="dlg-title">Fase concluída! <button data-close="winDialog">×</button></div><div class="dlg-content"><p>Todos os alvos foram preenchidos.</p><button id="winNext">Próxima fase ▶</button></div></dialog>
+<script src="levels.js"></script><script src="script.js"></script>
+</body></html>

@@ -1,0 +1,555 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  --win-gray: #c0c0c0;
+  --win-blue: #000080;
+  --win-dark: #404040;
+  --win-white: #ffffff;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Tahoma, Arial, sans-serif;
+  color: #111;
+  background: #c0c0c0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: 12px Tahoma, Arial, sans-serif;
+  color: #111;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:focus-visible {
+  outline: 2px dotted #000080;
+  outline-offset: -4px;
+}
+
+/* Janela principal */
+
+.window {
+  width: min(900px, 100%);
+  height: 100%;
+  max-height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  box-shadow: none;
+  padding: 3px;
+}
+
+/* Barra de título */
+
+.titlebar {
+  height: 27px;
+  min-height: 27px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: var(--win-blue);
+  color: #fff;
+  padding: 3px 5px;
+  font-size: 13px;
+}
+
+.appicon {
+  width: 18px;
+  height: 18px;
+  object-fit: cover;
+}
+
+.grow {
+  flex: 1;
+}
+
+.sys {
+  width: 20px;
+  height: 19px;
+  flex-shrink: 0;
+  padding: 0;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  font-weight: bold;
+}
+
+/* Menu */
+
+.menubar {
+  height: 28px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #808080;
+  padding: 0 2px;
+}
+
+.menubar button {
+  background: transparent;
+  border: 0;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.menubar button:hover {
+  background: var(--win-blue);
+  color: #fff;
+}
+
+/* Área principal */
+
+.content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 8px 17px;
+  padding: 0 1px 8px;
+  font-size: 12px;
+}
+
+.top label:first-child {
+  margin-right: auto;
+}
+
+/* Tabuleiro adaptável */
+
+.board-shell {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 5px;
+  background: #a6a6a6;
+  border: 2px solid;
+  border-color: #404040 #fff #fff #404040;
+}
+
+#board {
+  width: min(100%, 480px, calc((100dvh - 175px) * 8 / 7));
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 7;
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  grid-template-rows: repeat(14, minmax(0, 1fr));
+  flex: 0 1 auto;
+  background: #000;
+  overflow: hidden;
+}
+
+.tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: fill;
+  image-rendering: pixelated;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* Botões do jogo */
+
+.toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 5px;
+  padding-top: 8px;
+}
+
+.toolbar button,
+#winNext {
+  min-height: 28px;
+  padding: 5px 9px;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  white-space: nowrap;
+}
+
+.toolbar button:disabled,
+#winNext:disabled {
+  color: #777;
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+.toolbar button:active,
+#winNext:active {
+  border-color: #404040 #fff #fff #404040;
+}
+
+.message {
+  min-height: 27px;
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 8px 2px 2px;
+  overflow-wrap: anywhere;
+}
+
+/* Rodapé */
+
+footer {
+  display: flex;
+  flex-shrink: 0;
+  gap: 5px;
+  padding: 0 2px 2px;
+  font-size: 11px;
+}
+
+footer span {
+  min-width: 0;
+  border: 1px solid;
+  border-color: #808080 #fff #fff #808080;
+  padding: 5px 7px;
+}
+
+footer span:first-child {
+  flex: 1;
+}
+
+footer span:last-child {
+  flex: 2;
+  text-align: center;
+}
+
+/* Janelas de diálogo */
+
+dialog {
+  width: max-content;
+  min-width: min(310px, 94vw);
+  max-width: 95vw;
+  max-height: 90dvh;
+  overflow: auto;
+  padding: 3px;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  box-shadow: 3px 3px #222;
+}
+
+dialog::backdrop {
+  background: #0006;
+}
+
+.dlg-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--win-blue);
+  color: white;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 6px 7px;
+  display: flex;
+  align-items: center;
+}
+
+.dlg-title button {
+  margin-left: auto;
+  width: 21px;
+  height: 19px;
+  flex-shrink: 0;
+  padding: 0;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  font-weight: bold;
+}
+
+.dlg-content {
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#levelGrid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
+  padding: 10px;
+  max-height: 65dvh;
+  overflow-y: auto;
+}
+
+#levelGrid button {
+  min-width: 0;
+  min-height: 30px;
+  padding: 5px 2px;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+}
+
+#levelGrid button.current {
+  background: var(--win-blue);
+  color: white;
+}
+
+#levelGrid button.done {
+  background: #d2d2a4;
+}
+
+#levelGrid button.locked {
+  color: #777;
+  background: #888;
+  cursor: not-allowed;
+  border-color: #aaa #666 #666 #aaa;
+}
+
+#levelGrid button:disabled {
+  opacity: .8;
+  cursor: not-allowed;
+}
+
+.game-options {
+  display: grid;
+  gap: 7px;
+  min-width: min(270px, 78vw);
+}
+
+.game-options button,
+.dialog-actions button {
+  min-height: 32px;
+  padding: 6px 10px;
+  text-align: left;
+  background: var(--win-gray);
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+}
+
+.game-options button:active,
+.dialog-actions button:active {
+  border-color: #404040 #fff #fff #404040;
+}
+
+.dlg-content input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+  padding: 8px;
+  border: 2px solid;
+  border-color: #404040 #fff #fff #404040;
+  font: 13px Tahoma, Arial, sans-serif;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.error-text {
+  color: #a00000;
+  font-weight: bold;
+  min-height: 0;
+  margin: 6px 0;
+}
+
+.about-content {
+  max-width: 440px;
+}
+
+.about-content h3 {
+  margin: 4px 0 12px;
+  font-size: 15px;
+}
+
+.about-content p {
+  margin: 8px 0;
+}
+
+.about-content a {
+  color: var(--win-blue);
+  overflow-wrap: anywhere;
+}
+
+.about-content hr {
+  border: 0;
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #fff;
+  margin: 12px 0;
+}
+
+.about-note {
+  font-size: 11px;
+  color: #333;
+}
+
+/* Celulares */
+
+@media (max-width: 540px) {
+  .window {
+    width: 100%;
+    padding: 2px;
+  }
+
+  .titlebar {
+    height: 26px;
+    min-height: 26px;
+  }
+
+  .menubar {
+    height: 29px;
+    min-height: 29px;
+    gap: 0;
+  }
+
+  .menubar button {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .content {
+    padding: 6px 4px;
+  }
+
+  .top {
+    gap: 6px 12px;
+    padding-bottom: 6px;
+    font-size: 11px;
+  }
+
+  .board-shell {
+    padding: 3px;
+  }
+
+  #board {
+    width: min(100%, calc((100dvh - 205px) * 8 / 7));
+  }
+
+  .toolbar {
+    gap: 4px;
+    padding-top: 6px;
+  }
+
+  .toolbar button {
+    min-height: 31px;
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .message {
+    padding-top: 6px;
+    font-size: 11px;
+  }
+
+  footer span {
+    padding: 5px;
+  }
+
+  footer span:last-child {
+    display: none;
+  }
+
+  #levelGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  #levelGrid button {
+    min-height: 36px;
+  }
+
+  .dlg-content {
+    padding: 8px;
+  }
+}
+
+/* Celulares em modo paisagem e telas baixas */
+
+@media (max-height: 520px) {
+  .content {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .top {
+    padding-bottom: 3px;
+    gap: 8px;
+  }
+
+  #board {
+    width: min(100%, 480px, calc((100dvh - 125px) * 8 / 7));
+  }
+
+  .toolbar {
+    padding-top: 4px;
+    gap: 3px;
+  }
+
+  .toolbar button {
+    min-height: 25px;
+    padding: 3px 6px;
+  }
+
+  .message {
+    min-height: 20px;
+    padding-top: 4px;
+  }
+
+  footer span {
+    padding: 3px 5px;
+  }
+}
+
+/* Respeita aparelhos com recortes na tela */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  @media (max-width: 540px) {
+    .window {
+      padding-bottom: max(2px, env(safe-area-inset-bottom));
+    }
+  }
+}
