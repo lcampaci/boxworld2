@@ -101,6 +101,21 @@ document.getElementById("passwordForm").addEventListener("submit",e=>{
  passwordDialog.close();startSolution();
 });
 document.getElementById("undoBtn").onclick=undo;
+
+const mobileDirections = {
+  left: [-1, 0],
+  right: [1, 0],
+  down: [0, 1],
+  up: [0, -1]
+};
+
+document.querySelectorAll(".mobile-controls [data-move]").forEach(button => {
+  button.addEventListener("click", () => {
+    const direction = mobileDirections[button.dataset.move];
+    if (direction) step(direction[0], direction[1]);
+  });
+});
+
 document.getElementById("restartBtn").onclick=()=>{if(confirm("Reiniciar a fase "+(current+1)+"?"))restart();};
 document.getElementById("prevBtn").onclick=()=>loadLevel(current-1);
 document.getElementById("nextBtn").onclick=()=>loadLevel(current+1);

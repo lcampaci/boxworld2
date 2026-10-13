@@ -20,6 +20,18 @@
     <div class="board-shell"><div id="board" aria-label="Tabuleiro BoxWorld"></div></div>
     <div class="toolbar">
       <button id="undoBtn">↶ Desfazer</button><button id="restartBtn">⟲ Reiniciar</button><button id="prevBtn">◀ Anterior</button><button id="nextBtn">Próxima ▶</button><button id="solutionBtn">▶ Ver solução</button>
+      
+	<div class="mobile-controls" aria-label="Controles direcionais">
+  	<div class="control-row">
+   	 <button type="button" data-move="left" aria-label="Mover para esquerda">←</button>
+    	<button type="button" data-move="right" aria-label="Mover para direita">→</button>
+  	</div>
+  	<div class="control-row">
+    	<button type="button" data-move="down" aria-label="Mover para baixo">↓</button>
+    	<button type="button" data-move="up" aria-label="Mover para cima">↑</button>
+ 	 </div>
+	</div>
+
     </div>
     <div class="message" id="message">Empurre todas as caixas para os alvos.</div>
   </section>
