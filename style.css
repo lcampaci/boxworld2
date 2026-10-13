@@ -556,50 +556,45 @@ dialog::backdrop {
 
 
 /* Controles direcionais compactos para celular */
+/* Controles direcionais nas laterais do celular */
 .mobile-controls {
   display: none;
-  flex-shrink: 0;
-  gap: 4px;
-  padding: 5px 2px 1px;
-}
-
-.mobile-controls .control-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.mobile-controls button {
-  width: 42px;
-  height: 30px;
-  padding: 0;
-  font: bold 18px Tahoma, Arial, sans-serif;
-  color: #111;
-  background: #c0c0c0;
-  border: 2px solid;
-  border-color: #fff #404040 #404040 #fff;
-  border-radius: 0;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.mobile-controls button:active {
-  border-color: #404040 #fff #fff #404040;
-  background: #b0b0b0;
 }
 
 @media (max-width: 540px) {
   .mobile-controls {
     display: flex;
     flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    flex-shrink: 0;
+    padding: 5px 2px 2px;
+  }
+
+  .mobile-controls .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   .mobile-controls button {
-    width: 42px;
+    width: 40px;
     height: 30px;
+    padding: 0;
+    font: bold 18px Tahoma, Arial, sans-serif;
+    color: #111;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #404040 #404040 #fff;
+    border-radius: 0;
+    touch-action: manipulation;
   }
+
+  .mobile-controls button:active {
+    border-color: #404040 #fff #fff #404040;
+  }
+}
 
   /* Economiza espaço no celular */
   .toolbar {
