@@ -5,6 +5,9 @@ const board=document.getElementById("board"),movesEl=document.getElementById("mo
 const levelNum=document.getElementById("levelNum"),statusLevel=document.getElementById("statusLevel"),message=document.getElementById("message");
 const solutionDialog=document.getElementById("solutionDialog"),solutionBoard=document.getElementById("solutionBoard"),levelDialog=document.getElementById("levelDialog"),helpDialog=document.getElementById("helpDialog"),winDialog=document.getElementById("winDialog"),gameDialog=document.getElementById("gameDialog"),passwordDialog=document.getElementById("passwordDialog"),aboutDialog=document.getElementById("aboutDialog");
 const PROGRESS_KEY="boxworld_completed_levels_v1";
+const UNLOCK_ALL_KEY="boxworld_all_levels_unlocked_v1";
+const secretDialog=document.getElementById("secretDialog");
+let allLevelsUnlocked=localStorage.getItem(UNLOCK_ALL_KEY)==="1";
 // Altere esta senha para outra de sua preferência.
 const SOLUTION_PASSWORD="5847";
 function loadProgress(){try{const a=JSON.parse(localStorage.getItem(PROGRESS_KEY)||"[]");return new Set(a.filter(n=>Number.isInteger(n)&&n>=0&&n<LEVELS.length));}catch(_){return new Set();}}
@@ -18,8 +21,8 @@ function parseLevel(level){
  return {terrain,boxes,goals,player};
 }
 function clone(s){return{terrain:s.terrain.slice(),boxes:new Set(s.boxes),goals:new Set(s.goals),player:s.player};}
-function stopSolution(){if(playTimer!==null){clearTimeout(playTimer);playTimer=null;}document.getElementById("solutionBtn").textContent="▶ Ver solução";}
-function highestUnlocked(){return Math.min(LEVELS.length-1,completed.size?Math.max(...completed)+1:0);}
+function stopSolution(){if(playTimer!==null){clearTimeout(playTimer);playTimer=null;}}
+function highestUnlocked(){return allLevelsUnlocked?LEVELS.length-1:Math.min(LEVELS.length-1,completed.size?Math.max(...completed)+1:0);}
 function loadLevel(n){stopSolution();n=Math.max(0,Math.min(LEVELS.length-1,n));if(n>highestUnlocked()){message.textContent="Fase bloqueada! Conclua a fase "+(highestUnlocked()+1)+" para desbloqueá-la.";return false;}current=n;state=parseLevel(LEVELS[current]);history=[];moves=0;pushes=0;won=false;
  levelNum.textContent=current+1;statusLevel.textContent="Fase "+(current+1);message.textContent="Empurre todas as caixas para os alvos.";render();renderLevels();updateNavigation();return true;}
 function tileSprite(v){return "./imagens/"+v+".gif";}
@@ -53,7 +56,7 @@ function step(dx,dy,fromSolution=false){
 function undo(){stopSolution();if(!history.length)return;won=false;if(winDialog.open)winDialog.close();const h=history.pop();state=h.state;moves=h.moves;pushes=h.pushes;message.textContent="Último movimento desfeito.";render();updateNavigation();}
 function restart(){loadLevel(current);}
 function checkWin(){if(state.boxes.size===state.goals.size&&[...state.goals].every(g=>state.boxes.has(g))){won=true;completed.add(current);try{localStorage.setItem(PROGRESS_KEY,JSON.stringify([...completed].sort((a,b)=>a-b)));}catch(_){}message.textContent="Fase concluída! A próxima fase foi desbloqueada.";renderLevels();updateNavigation();stopSolution();setTimeout(()=>{if(won&&!winDialog.open)winDialog.showModal();},120);}}
-function updateNavigation(){document.getElementById("prevBtn").disabled=current===0;document.getElementById("nextBtn").disabled=current>=highestUnlocked();document.getElementById("winNext").disabled=current>=LEVELS.length-1;}
+function updateNavigation(){document.getElementById("winNext").disabled=current>=LEVELS.length-1;}
 function renderLevels(){const grid=document.getElementById("levelGrid");grid.innerHTML="";const unlocked=highestUnlocked();LEVELS.forEach((l,i)=>{const b=document.createElement("button");const isLocked=i>unlocked;b.textContent=isLocked?"🔒":""+(i+1);if(i===current)b.classList.add("current");if(completed.has(i))b.classList.add("done");if(isLocked){b.classList.add("locked");b.disabled=true;b.title="Bloqueada — conclua a fase "+i+" para liberar.";}else{b.title="Fase "+(i+1)+" · empurrões de referência: "+l.pushes;b.onclick=()=>{if(loadLevel(i))levelDialog.close();};}grid.appendChild(b);});}
 function playSolution(){
  stopSolution();document.getElementById("passwordError").textContent="";document.getElementById("solutionPasswordInput").value="";passwordDialog.showModal();document.getElementById("solutionPasswordInput").focus();
@@ -73,18 +76,81 @@ function startSolution(){
 function advanceSolution(){if(solutionIndex>=solutionMoves.length)return;applySolutionMove(solutionState,solutionMoves[solutionIndex++]);renderSolutionPreview();}
 function playSolutionPreview(){if(playTimer!==null){stopSolution();return;}if(solutionIndex>=solutionMoves.length){solutionIndex=0;solutionState=parseLevel(LEVELS[current]);renderSolutionPreview();}document.getElementById("solutionPlayBtn").textContent="■ Pausar";const tick=()=>{if(!solutionDialog.open||solutionIndex>=solutionMoves.length){stopSolution();return;}advanceSolution();playTimer=setTimeout(tick,220);};tick();}
 
+function showSecretDialog(){
+ if(document.querySelector("dialog[open]"))return;
+ document.getElementById("secretError").textContent="";
+ document.getElementById("secretPasswordInput").value="";
+ secretDialog.showModal();
+ document.getElementById("secretPasswordInput").focus();
+}
+function exportProgress(){
+ const data={format:"boxworld-save",version:1,savedAt:new Date().toISOString(),completed:[...completed].sort((a,b)=>a-b),allLevelsUnlocked,currentLevel:current};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");
+ a.href=url;a.download="boxworld-salvamento.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+ message.textContent="Arquivo JSON de progresso salvo.";
+}
+function importProgressFile(file){
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  try{
+   const data=JSON.parse(String(reader.result||""));
+   if(!data||data.format!=="boxworld-save"||!Array.isArray(data.completed))throw new Error("Formato inválido");
+   const imported=new Set(data.completed.filter(n=>Number.isInteger(n)&&n>=0&&n<LEVELS.length));
+   completed=imported;
+   allLevelsUnlocked=data.allLevelsUnlocked===true;
+   localStorage.setItem(PROGRESS_KEY,JSON.stringify([...completed].sort((a,b)=>a-b)));
+   localStorage.setItem(UNLOCK_ALL_KEY,allLevelsUnlocked?"1":"0");
+   const target=Number.isInteger(data.currentLevel)?Math.max(0,Math.min(LEVELS.length-1,data.currentLevel)):highestUnlocked();
+   renderLevels();
+   if(!loadLevel(Math.min(target,highestUnlocked())))loadLevel(highestUnlocked());
+   message.textContent="Progresso importado com sucesso.";
+  }catch(_){message.textContent="Não foi possível importar. Selecione um arquivo JSON de salvamento do BoxWorld.";}
+  document.getElementById("importSaveInput").value="";
+ };
+ reader.onerror=()=>{message.textContent="Erro ao ler o arquivo JSON.";document.getElementById("importSaveInput").value="";};
+ reader.readAsText(file);
+}
+document.getElementById("importSaveInput").addEventListener("change",e=>importProgressFile(e.target.files[0]));
 document.addEventListener("keydown",e=>{
+ const key=e.key.toLowerCase();
+ if(e.ctrlKey && ["r","z","b","m","l","s","i","a","j","k"].includes(key)){
+  e.preventDefault();e.stopPropagation();
+  if(e.repeat)return;
+  if(key==="a"){
+   if(!document.querySelector("dialog[open]"))helpDialog.showModal();
+   return;
+  }
+  if(key==="i"){
+   if(!document.querySelector("dialog[open]"))document.getElementById("importSaveInput").click();
+   return;
+  }
+  if(key==="j"||key==="k"){
+   if(!document.querySelector("dialog[open]")){
+    document.getElementById("secretMode").value=key==="k"?"unlock":"lock";
+    document.querySelector("#secretDialog .dlg-title").childNodes[0].textContent=key==="k"?"Desbloquear fases ":"Bloquear fases ";
+    showSecretDialog();
+   }
+   return;
+  }
+  if(document.querySelector("dialog[open]"))return;
+  if(key==="r")restart();
+  else if(key==="z")undo();
+  else if(key==="b"){if(current>0)loadLevel(current-1);}
+  else if(key==="m"){if(current<highestUnlocked())loadLevel(current+1);}
+  else if(key==="l")playSolution();
+  else if(key==="s")exportProgress();
+  return;
+ }
  if(winDialog.open && (e.key === "Enter" || e.key === " ")){
-  e.preventDefault();
-  winDialog.close();
+  e.preventDefault();winDialog.close();
   if(current < LEVELS.length - 1) loadLevel(current + 1);
   else message.textContent = "Parabéns! Você concluiu todas as fases.";
   return;
  }
  if(document.querySelector("dialog[open]"))return;
  if(dirs[e.key]){e.preventDefault();step(...dirs[e.key]);}
- else if(e.key.toLowerCase()==="z"){e.preventDefault();undo();}
- else if(e.key.toLowerCase()==="r"){e.preventDefault();restart();}
 });
 document.getElementById("levelsMenu").onclick=()=>levelDialog.showModal();
 document.getElementById("helpMenu").onclick=()=>helpDialog.showModal();
@@ -93,17 +159,25 @@ document.getElementById("aboutMenu").onclick=()=>aboutDialog.showModal();
 document.getElementById("menuRestart").onclick=()=>{gameDialog.close();if(confirm("Reiniciar a fase "+(current+1)+"?"))restart();};
 document.getElementById("menuUndo").onclick=()=>{gameDialog.close();undo();};
 document.getElementById("menuSolution").onclick=()=>{gameDialog.close();playSolution();};
+document.getElementById("secretForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const input=document.getElementById("secretPasswordInput");
+ if(input.value.trim()!=="5847"){
+  document.getElementById("secretError").textContent="Senha incorreta.";input.select();return;
+ }
+ const mode=document.getElementById("secretMode").value;
+ allLevelsUnlocked=mode==="unlock";
+ try{localStorage.setItem(UNLOCK_ALL_KEY,allLevelsUnlocked?"1":"0");}catch(_){}
+ secretDialog.close();renderLevels();updateNavigation();
+ if(current>highestUnlocked())loadLevel(highestUnlocked());
+ message.textContent=allLevelsUnlocked?"Todas as fases foram desbloqueadas.":"Desbloqueio por senha desativado. Seu progresso normal foi mantido.";
+});
 document.getElementById("passwordForm").addEventListener("submit",e=>{
  e.preventDefault();
  const input=document.getElementById("solutionPasswordInput");
  if(input.value.trim().toUpperCase() !== SOLUTION_PASSWORD){document.getElementById("passwordError").textContent="Senha incorreta. A solução continua bloqueada.";input.select();return;}
  passwordDialog.close();startSolution();
 });
-document.getElementById("undoBtn").onclick=undo;
-document.getElementById("restartBtn").onclick=()=>{if(confirm("Reiniciar a fase "+(current+1)+"?"))restart();};
-document.getElementById("prevBtn").onclick=()=>loadLevel(current-1);
-document.getElementById("nextBtn").onclick=()=>loadLevel(current+1);
-document.getElementById("solutionBtn").onclick=playSolution;
 document.getElementById("solutionPlayBtn").onclick=playSolutionPreview;document.getElementById("solutionPrevBtn").onclick=()=>{stopSolution();if(solutionIndex>0){solutionIndex--;solutionState=parseLevel(LEVELS[current]);for(let i=0;i<solutionIndex;i++)applySolutionMove(solutionState,solutionMoves[i]);renderSolutionPreview();}};document.getElementById("solutionNextBtn").onclick=()=>{stopSolution();advanceSolution();};
 document.getElementById("winNext").onclick=()=>{winDialog.close();if(current<LEVELS.length-1)loadLevel(current+1);};
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{const dlg=document.getElementById(b.dataset.close);if(dlg.id==="solutionDialog")stopSolution();dlg.close();});

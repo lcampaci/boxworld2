@@ -14,14 +14,17 @@ Alterações desta versão:
 - Todas as imagens ficam juntas na pasta imagens/.
 - Fundo preto no tabuleiro e no fundo da página.
 - Fases bloqueadas até concluir a fase anterior; progresso salvo no navegador.
-- A solução exige senha. Senha inicial: BOXWORLD1992 (pode ser alterada em script.js).
+- A solução exige senha. Senha atual: 5847.
 
 Controles:
 - Setas ou W/A/S/D: mover
-- Z: desfazer movimento
-- R: reiniciar fase
-- Fases: somente fases desbloqueadas aparecem disponíveis. É necessário concluir uma fase para liberar a próxima. O progresso fica salvo neste navegador.
-- Ver solução: pede senha antes de reproduzir a solução guardada. Senha inicial: BOXWORLD1992. Para trocar, edite SOLUTION_PASSWORD no arquivo script.js.
+- Ctrl + R: reiniciar fase
+- Ctrl + Z: desfazer somente a última jogada
+- Ctrl + B: fase anterior
+- Ctrl + N: próxima fase, quando estiver liberada
+- Ctrl + S: ver solução
+- Fases: são desbloqueadas em sequência. O progresso fica salvo neste navegador.
+- Ver solução: pede senha antes de reproduzir a solução guardada.
 
 Atenção:
 O tabuleiro e os sprites foram recuperados dos arquivos enviados. A moldura e os controles foram recriados em HTML/CSS; portanto, a interface geral não é uma cópia pixel a pixel do site antigo. As fases e os gráficos são muito mais próximos do original que nas versões anteriores.
