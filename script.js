@@ -6,7 +6,7 @@ const levelNum=document.getElementById("levelNum"),statusLevel=document.getEleme
 const solutionDialog=document.getElementById("solutionDialog"),solutionBoard=document.getElementById("solutionBoard"),levelDialog=document.getElementById("levelDialog"),helpDialog=document.getElementById("helpDialog"),winDialog=document.getElementById("winDialog"),gameDialog=document.getElementById("gameDialog"),passwordDialog=document.getElementById("passwordDialog"),aboutDialog=document.getElementById("aboutDialog");
 const PROGRESS_KEY="boxworld_completed_levels_v1";
 // Altere esta senha para outra de sua preferência.
-const SOLUTION_PASSWORD="BOXWORLD1992";
+const SOLUTION_PASSWORD="5847";
 function loadProgress(){try{const a=JSON.parse(localStorage.getItem(PROGRESS_KEY)||"[]");return new Set(a.filter(n=>Number.isInteger(n)&&n>=0&&n<LEVELS.length));}catch(_){return new Set();}}
 let current=0,state=null,history=[],moves=0,pushes=0,completed=loadProgress(),won=false,playTimer=null,solutionState=null,solutionMoves=[],solutionIndex=0;
 const TILE=30, WIDTH=16, HEIGHT=14;
